@@ -1,0 +1,84 @@
+from AlgorithmImports import *
+import numpy as np
+import pandas as pd
+
+# Import custom trading statistics generated in another Python script
+import trading_statistics as ts
+
+class MyAlgorithm(QCAlgorithm):
+    def Initialize(self):
+        # Set the start date for backtesting
+        self.SetStartDate(2024, 1, 1)
+        # Set the end date for backtesting to the current date
+        self.SetEndDate(datetime.now().year, datetime.now().month, datetime.now().day)
+        # Set the initial capital for the algorithm
+        self.SetCash(100000)
+
+        # Debugging prints to ensure correct import of statistics
+        self.Debug(f"Ticker1: {ts.ticker1}")
+        self.Debug(f"Ticker2: {ts.ticker2}")
+        self.Debug(f"Differences Mean: {ts.differences_mean}")
+        self.Debug(f"Standard Deviation: {ts.std_dev}")
+
+        # Add the equities to be traded using the imported tickers
+        self.ticker1 = self.AddEquity(ts.ticker1, Resolution.Daily).Symbol
+        self.ticker2 = self.AddEquity(ts.ticker2, Resolution.Daily).Symbol
+        # Assign the imported statistics to class variables
+        self.differences_mean = ts.differences_mean
+        self.std_dev = ts.std_dev
+
+        # Set a warm-up period to initialize indicators and avoid startup bias
+        self.SetWarmup(30, Resolution.Daily)
+
+        # Schedule the trading function to run daily before the market closes
+        self.Schedule.On(self.DateRules.EveryDay(self.ticker1), self.TimeRules.BeforeMarketClose(self.ticker1, 10), self.Trade)
+
+    def Trade(self):
+        # Ensure the algorithm is not in the warm-up period
+        if self.IsWarmingUp:
+            return
+
+        # Get the historical price data for both tickers
+        history = self.History([self.ticker1, self.ticker2], 1, Resolution.Daily)
+        if not history.empty:
+            # Extract the closing prices for the two tickers
+            price1 = history.loc[self.ticker1]['close'].item()
+            price2 = history.loc[self.ticker2]['close'].item()
+            # Calculate the current difference in prices between the two tickers
+            current_difference = price1 - price2
+
+            # Determine which ticker is overvalued and which is undervalued based on the current price difference
+            if current_difference > self.differences_mean:
+                overvalued_ticker, undervalued_ticker = self.ticker1, self.ticker2
+                overvalued_price, undervalued_price = price1, price2
+            else:
+                overvalued_ticker, undervalued_ticker = self.ticker2, self.ticker1
+                overvalued_price, undervalued_price = price2, price1
+
+            # Determine the allocation amount based on the deviation from the mean difference
+            allocation = 0.0
+            if abs(current_difference - self.differences_mean) > 1.25 * self.std_dev:
+                allocation = 1.00
+            elif abs(current_difference - self.differences_mean) > 1.00 * self.std_dev:
+                allocation = 0.80
+            elif abs(current_difference - self.differences_mean) > 0.75 * self.std_dev:
+                allocation = 0.50
+            elif abs(current_difference - self.differences_mean) > 0.50 * self.std_dev:
+                allocation = 0.25
+
+            # Execute trades if a significant deviation is detected
+            if allocation > 0:
+                trade_cash = self.Portfolio.Cash * allocation
+                # Calculate the number of shares to trade for each ticker
+                num_shares_overvalued = int(trade_cash // overvalued_price)
+                num_shares_undervalued = int(trade_cash // undervalued_price)
+
+                # Ensure that the calculated number of shares is positive before placing trades
+                if num_shares_overvalued > 0 and num_shares_undervalued > 0:
+                    # Short the overvalued ticker and go long on the undervalued ticker
+                    self.SetHoldings(overvalued_ticker, -allocation)
+                    self.SetHoldings(undervalued_ticker, allocation)
+
+    def OnData(self, data):
+        # The OnData method is required but not used in this strategy
+        pass
