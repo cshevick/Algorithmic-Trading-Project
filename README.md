@@ -14,9 +14,6 @@ This repository contains a pairs trading algorithm developed to exploit statisti
 3. [Code Structure](#code-structure)
     - [QuantConnect Algorithm](#quantconnect-algorithm)
     - [Visual Studio Code Analysis](#visual-studio-code-analysis)
-4. [Contributing](#contributing)
-5. [License](#license)
-6. [Contact](#contact)
 
 ## Project Overview
 
