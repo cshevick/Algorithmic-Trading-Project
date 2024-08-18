@@ -53,6 +53,6 @@ Pairs trading is a market-neutral strategy that involves matching a long positio
 
 ### Visual Studio Code Analysis
 
-- **vs_code_analysis.py**: Script to fetch historical data, perform statistical analysis, and generate trading statistics.
+- **statisticalAnalysis.py**: Script to fetch historical data, perform statistical analysis, and generate trading statistics.
 - **trading_statistics.py**: Generated script containing the calculated statistics used by the QuantConnect algorithm.
 
