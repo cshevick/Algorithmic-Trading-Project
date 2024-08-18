@@ -82,7 +82,7 @@ statistics = {
     'regression_coefficient': reg.coef_[0]
 }
 
-# Save the statistics to a Python script in the home directory
+# Save the statistics to a Python script in the home directory where it can be entered into QuantConnect to execute trades
 home_dir = os.path.expanduser("~")
 file_path = os.path.join(home_dir, 'trading_statistics.py')
 with open(file_path, 'w') as f:
