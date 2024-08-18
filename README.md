@@ -49,7 +49,7 @@ Pairs trading is a market-neutral strategy that involves matching a long positio
 
 ### QuantConnect Algorithm
 
-- **quantconnect_algorithm.py**: Contains the main algorithm for executing trades based on statistical analysis.
+- **quantconnect.py**: Contains the main algorithm for executing trades based on statistical analysis.
 
 ### Visual Studio Code Analysis
 
